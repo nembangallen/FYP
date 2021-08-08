@@ -56,7 +56,7 @@ def pre_processing(df1):
 
 #forcasting
 def forcase_data(model,test_data,n_steps=100):
-  x_input=test_data[len(test_data)-100:].reshape(1,-1)
+  x_input=test_data.reshape(1,-1)
   temp_input=list(x_input)
   temp_input=temp_input[0].tolist()
   # demonstrate prediction for next 10 days
@@ -99,14 +99,15 @@ def hello(company_name):
     model = load_model(MODEL_PATH)
     df=pd.read_csv('new_data/' + company_name + '.csv')
     X_train,y_train, X_test,ytest,test_data,scaler = pre_processing(df1=df)
-    lst_output = forcase_data(model=model,test_data=test_data,n_steps=100)
+    lst_output = forcase_data(model=model,test_data=test_data[-100:],n_steps=100)
 
     lst_output=scaler.inverse_transform(lst_output).flatten().tolist()
     test_data = scaler.inverse_transform(test_data).flatten().tolist()
+    print(test_data[-100:])
     
-    forecasted_data = updated_forecast(7, test_data[-1], test_data[-1] + nhcp_result())
+    # forecasted_data = updated_forecast(7, test_data[-1], test_data[-1] + nhcp_result())
 
-    return {"test_data": test_data,"forecasted_stocks": forecasted_data}
+    return {"test_data": test_data,"forecasted_stocks": lst_output}
 
 if __name__ == "__main__":
   app.run()
