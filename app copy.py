@@ -14,8 +14,6 @@ import os
 from tensorflow import keras
 from tensorflow.keras.models import load_model
 
-from utils import updated_forecast, nhcp_result
-
 app = Flask(__name__)
 
 # convert an array of values into a dataset matrix
@@ -43,7 +41,7 @@ def pre_processing(df1):
     test_size=len(df1)-training_size
     train_data,test_data=df1[0:training_size,:],df1[training_size:len(df1),:1]
     # reshape into X=t,t+1,t+2,t+3 and Y=t+4
-    # print('test-data: ', test_data)
+    print('test-data: ', test_data)
     time_step = 100
     X_train, y_train = create_dataset(train_data, time_step)
     X_test, ytest = create_dataset(test_data, time_step)
@@ -66,12 +64,12 @@ def forcase_data(model,test_data,n_steps=100):
       if(len(temp_input)>100):
           #print(temp_input)
           x_input=np.array(temp_input[1:])
-        #   print("{} day input {}".format(i,x_input))
+          print("{} day input {}".format(i,x_input))
           x_input=x_input.reshape(1,-1)
           x_input = x_input.reshape((1, n_steps, 1))
           #print(x_input)
           yhat = model.predict(x_input, verbose=0)
-        #   print("{} day output {}".format(i,yhat))
+          print("{} day output {}".format(i,yhat))
           temp_input.extend(yhat[0].tolist())
           temp_input=temp_input[1:]
           #print(temp_input)
@@ -87,7 +85,6 @@ def forcase_data(model,test_data,n_steps=100):
           i=i+1
   return lst_output
 
-
 @app.route("/")
 def main_fun():
     return {"status": "Running server"}
@@ -97,16 +94,14 @@ def main_fun():
 def hello(company_name):
     MODEL_PATH = 'models/'+company_name+'.h5'
     model = load_model(MODEL_PATH)
-    df=pd.read_csv('new_data/' + company_name + '.csv')
+    df=pd.read_csv('data/' + company_name + '.csv')
     X_train,y_train, X_test,ytest,test_data,scaler = pre_processing(df1=df)
     lst_output = forcase_data(model=model,test_data=test_data,n_steps=100)
 
     lst_output=scaler.inverse_transform(lst_output).flatten().tolist()
     test_data = scaler.inverse_transform(test_data).flatten().tolist()
     
-    forecasted_data = updated_forecast(7, test_data[-1], test_data[-1] + nhcp_result())
-
-    return {"test_data": test_data,"forecasted_stocks": forecasted_data}
+    return {"test_data": test_data,"forecasted_stocks": lst_output}
 
 if __name__ == "__main__":
   app.run()
