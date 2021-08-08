@@ -83,6 +83,10 @@ def forcase_data(model,test_data,n_steps=100):
           lst_output.extend(yhat.tolist())
           i=i+1
   return lst_output
+
+@app.route("/")
+def main_fun():
+    return {"status": "Running server"}
       
 
 @app.route("/<company_name>", methods=["GET"])
@@ -90,7 +94,6 @@ def hello(company_name):
     # PATH = os.getcwd()
     # model_path = PATH + '/data_model/' + company_name + '.h5'
     MODEL_PATH = 'models/'+company_name+'.h5'
-    print(MODEL_PATH)
     model = load_model(MODEL_PATH)
     df=pd.read_csv('data/' + company_name + '.csv')
     X_train,y_train, X_test,ytest,test_data,scaler = pre_processing(df1=df)
